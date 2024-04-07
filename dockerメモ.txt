@@ -1,0 +1,84 @@
+イメージ→Dockerコンテナの動作環境となるテンプレートファイル。
+コンテナを作成するための指示が記載された読み取り専用のテンプレート。Dockerイメージは、Dockerプラットフォーム上で稼働するコンテナを作成する。
+複数の積み重なったレイヤーで構成されており、それぞれのレイヤーが環境に変更を加える。ホストオペレーティングシステム(OS)のカーネルに依存する。
+イメージはDockerfileを使って手動でビルドできる。レジストリと呼ばれる一元的なリポジトリから、またはdocker pull [name]コマンドを使用してDocker Hubなどのリポジトリから、イメージをプルすることもできる。
+Dockerイメージは変更不可能。そのため、作成後に変更することはできない。
+Dockerイメージ自体が稼働するわけではないが、イメージからコンテナを作成して稼働させることができる。
+
+コンテナ→テンプレートファイルに基づいてアプリケーションを実行する環境・インスタンス。
+アプリケーションを実行する分離された環境。
+コンテナはLinuxでネイティブに稼働し、ホストマシンのカーネルを共有するため、軽量で、他の実行可能ファイルに比べメモリを使用しない。
+コンテナを使用して、アプリケーションとそれに必要なすべてのコンポーネントをパッケージ化すると、すべてをまとめた1つのコンテナとしてリリースできる。
+
+Dockerfile→Dockerで作成するコンテナイメージを管理するためのファイル。
+必要なパッケージやアプリ、各種設定を含んだDockerイメージを自分で作成して使用する場合、Dockerfileを作成し、それを使用して必要なDockerイメージを作成することができる。
+
+FROM→元となるコンテナを指定する。Dockerイメージを取得（docker pull）していなくても、ローカルにない場合は、Dockerイメージ作成のコマンド実行時に自動で取得する。
+COPY→コンテナ内にファイルをコピーする
+ADD→tar.gzファイルのコンテナへのコピーと、tarの展開を行う
+RUN→コンテナビルド時にコンテナ内でコマンドを実行する
+CMD→コンテナのデフォルトの実行コマンドを定義する
+ENTRYPOINT→コンテナのエントリーポイントを定義する
+ENV→コンテナに渡す環境変数を定義する
+EXPOSE→コンテナで利用するポート番号を定義する
+LABEL→作成者情報・バージョンを指定
+USER→RUN、CMD、ENTRYPOINTで指定のコマンドを実行するユーザー
+WORKDIR→RUN、CMD、 ENTRYPOINT、ADD、COPYの際の作業ディレクトリ
+ONBUILD→Build完了時に実行するコマンド
+VOLUME→イメージ利用者に永続データが保存される場所を解放
+ARG→docker build時に指定する引数
+
+docker-compose→複数のコンテナで構成されるアプリケーションについて、Dockerイメージのビルドや各コンテナの起動・停止などをより簡単に行えるようにするツール。
+Dockerビルドやコンテナ起動のオプションなどを含め、複数のコンテナの定義をymlファイルに書き、それを利用してDockerビルドやコンテナ起動をすることができる。一つの簡単なコマンドで複数のコンテナを管理できるようになる。
+docker-compose.ymlというファイルが必要となる。
+
+docker-compose.yml
+service→Docker Composeによって動作させるアプリケーションの単位を指す。
+image→利用するDockerイメージを指定。
+build→Dockerコンテナをどのように実行(build)するかをまとめる。
+volume→Dockerコンテナをマウントするボリュームを指定。
+ports→ポートマッピングの内容を指定。左にホストのポートを、右にコンテナのポートを指定。
+depens_on→他サービスの依存関係に関する指定。
+environment→起動するコンテナへ環境変数を定義。
+env_file→sファイルに定義された環境変数を読み取り、コンテナへ定義。
+command→Dockerfileで定義されている CMD の上書きを行う。
+
+docker-composeでコンテナを起動する仕組み
+DockerFileの作成
+docker-compose.ymlの作成
+docker-composeコマンドでコンテナ起動
+
+Dockerコンテナ起動までの仕組み
+Docker Hub等のリポジトリから公式のイメージを取得（pull）
+取得イメージをもとにDockerFileを作成し、自作のイメージを作成（build）
+イメージからコンテナを作成（create）
+コンテナを起動（start）
+
+
+docker image ls→イメージ一覧
+docker image rmi→イメージを削除
+docker build→Dockerfileからイメージのビルド
+
+docker ps→コンテナ一覧
+docker run→新規コンテナでコマンドを実行
+docker rm→コンテナを削除
+
+・コンテナビルド
+docker-compose build --no-cache
+
+・コンテナ起動
+docker-compose up
+docker-compose up -d バックグラウンドで起動
+
+・コンテナ停止
+docker-compose stop
+
+・コンテナ削除
+docker ps -a
+docker rm コンテナID
+
+・イメージ削除
+docker images
+docker rmi イメージID
+
+

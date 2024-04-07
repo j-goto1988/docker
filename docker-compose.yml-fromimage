@@ -1,0 +1,22 @@
+version: '3'
+services:
+    web:
+        image: "training_php_new"
+        container_name: "training_php_new"
+        privileged: true
+        ports:
+            - "80:80"
+        volumes:
+            - ./project/html:/var/www/html
+            - ./php/php:/usr/local/etc/php
+    db:
+        image: "training_mysql_new"
+        container_name: "training_mysql_new"
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: testhoge

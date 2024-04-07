@@ -1,0 +1,103 @@
+■構成
+PHP 7.0.33
+https://hub.docker.com/_/php
+FuelPHP 1.8.2
+MySQL 8.3.0
+https://hub.docker.com/_/mysql
+Apache 2.4.25
+
+■環境構築
+1.docker-compose.ymlのwebのvolumesの3行をコメントアウトし、ビルドする
+docker-compose build --no-cache
+
+2.PHPのコンテナに入り、FuelPHPをインストールし、ログはエラーになるので権限を変更
+git clone https://github.com/fuel/fuel.git .
+composer install --prefer-dist
+cd /var/www/html/fuel/app
+chmod 0777 logs
+
+3.コンテナのファイルをローカルに同期させる
+docker cp コンテナID:パス ローカルのパス
+docker cp コンテナID:/var/www/html/ /c/training/project/
+docker cp コンテナID:/usr/local/etc/php /c/training/php/
+
+4.コンテナを停止
+docker-compose stop
+
+5.docker-compose.ymlのwebのvolumesの3行をコメントアウトを外し、コンテナを起動
+docker-compose up
+
+6.404になるURLにアクセスしてもFuelPHPの404ではなく、PHPのコンテナに入り、Apacheの画面が表示される場合はmod_rewriteを有効化にする
+cd /var/www/html/public
+a2enmod rewrite
+
+7.php.ini-developmentをコピーし、php.iniを作成し、変更(PHPのコンテナに入り修正、ローカルの修正のどちらでもOK)
+cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
+vi /usr/local/etc/php/php.ini
+[Date]
+date.timezone = "Asia/Tokyo"
+[mbstring]
+mbstring.internal_encoding = "UTF-8"
+mbstring.language = "Japanese"
+
+8.configの変更(PHPのコンテナに入り修正、ローカルの修正のどちらでもOK)
+vi /var/www/html/fuel/app/config/config.php
+'profiling' => true,
+'language' => 'ja',
+'language_fallback' => 'en',
+'locale' => 'ja_JP.UTF-8',
+'encoding' => 'UTF-8',
+'default_timezone' => 'Asia/Tokyo',
+'log_threshold'   => Fuel::L_ALL,
+'log_path'        => APPPATH.'logs/',
+'log_date_format' => 'Y-m-d H:i:s',
+
+9.db.phpを変更(PHPのコンテナに入り修正、ローカルの修正のどちらでもOK)
+vi /var/www/html/fuel/app/config/development/db.php
+return array(
+        'default' => array(
+                'connection' => array(
+                        'dsn'      => 'mysql:host=db;dbname=test;charset=utf8;',
+                        'username' => 'root',
+                        'password' => 'testhoge',
+                ),
+                'profiling' => true
+        ),
+);
+
+10.PHPのコンテナに入り、Apacheを再起動
+service apache2 restart
+
+11.コンテナを起動
+docker-compose up
+
+12.「No write access to APPPATH/config/crypt.php」とエラーが出た場合、画面上のエラーを元にcrypt.phpを作成する(PHPのコンテナに入り修正、ローカルの修正のどちらでもOK)
+vi /var/www/html/fuel/app/config/crypt.php
+
+
+■コンテナの共有方法
+・圧縮ファイルを作成する方法
+1.コンテナからイメージを作成
+docker commit コンテナID イメージ名
+docker commit コンテナID training_php_new
+docker commit コンテナID training_mysql_new
+
+2.イメージから圧縮ファイルを保存
+docker save イメージID > tarファイル名.tar
+docker save イメージID > training_php.tar
+docker save イメージID > training_mysql.tar
+
+・圧縮ファイルからコンテナを起動する方法
+1.圧縮ファイルをロードしイメージを作成
+docker load -i tarファイル名.tar
+docker load -i training_php.tar
+docker load -i training_mysql.tar
+
+2.イメージ名を変更
+dokcer tag イメージID イメージ名:tag
+docker tag イメージID training_php_new:latest
+docker tag イメージID training_mysql_new:latest
+
+3.コンテナを起動
+docker-compose -f docker-compose.yml-fromimage up
+
